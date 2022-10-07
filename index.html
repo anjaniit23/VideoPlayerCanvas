@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="shortcut icon" href="#">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body{
+        display: grid;
+        min-height: 100vh;
+        place-content: center;
+        font-family: "Roboto", sans-serif;
+      }
+
+      video{
+        margin: 10px 0;
+      }
+
+      video::-webkit-media-controls-volume-slider, video::-webkit-media-controls-mute-button, video::-webkit-media-controls-timeline, video::-webkit-media-controls-current-time-display, video::-webkit-media-controls-fullscreen-button, video::-webkit-media-controls-time-remaining-display {
+        display: none;
+      }
+
+      .wrapper{
+        position: relative;
+        width: 500px;
+        background-color: #ffffff;
+        margin-bottom: 10px;
+      }
+
+      .container{
+        position: relative;
+        width: 100%;
+        height: 50px;
+      }
+      
+      input[type="range"]{
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        width: 100%;
+        outline: none;
+        position: absolute;
+        margin: auto;
+        top: 0;
+        bottom: 0;
+        background-color: transparent;
+        pointer-events: none;
+      }
+
+      .slider-track{
+        width: 100%;
+        height: 5px;
+        background-color: #ececec;
+        position: absolute;
+        margin: auto;
+        top: 0;
+        bottom: 0;
+        border-radius: 5px;
+      }
+
+      .progress-track{
+        width: 0%;
+        height: 5px;
+        background-color: #b8b8b8;
+        position: absolute;
+        margin: auto;
+        top: 0;
+        bottom: 0;
+        border-radius: 5px;
+      }
+
+      input[type="range"]::-webkit-slider-runnable-track{
+        -webkit-appearance: none;
+        height: 5px;
+      }
+
+      input[type="range"]::-webkit-slider-thumb{
+        -webkit-appearance: none;
+        height: 1.2em;
+        width: 1.2em;
+        border-radius: 999px;
+        pointer-events: none;
+        cursor: default;
+        margin-top: -5.5px;
+        transform: all .5s ease;
+        background-color: #3688ce;
+        clip-path: polygon(25% 0%, 75% 0%, 75% 52%, 51% 100%, 51% 100%, 25% 50%);
+      }
+
+      input[type='range'].active::-webkit-slider-thumb{
+        filter: none;
+        transform: scale(1.2);
+      }
+
+      input[type='range'].unactive::-webkit-slider-thumb{
+        filter: blur(1px);
+        -webkit-filter: blur(1px);
+        transform: scale(1);
+      }
+      
+
+      #timeline-slider::-webkit-slider-thumb{
+        border-radius: 0px;
+        width: 0.4em;   
+        height: 1.2em;
+        border-radius: 2px;
+        background-color: rgb(107, 107, 107);
+        background-image: none;
+        margin-top: -5.5px;
+        opacity: 1;
+        clip-path: none;
+      }
+
+      #addbtn{
+        padding: 10px 0;
+        width: 100px;
+        border: 0px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .btn-group{
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .btn-group > div{
+        flex: 1;
+        text-align: center;
+      }
+
+      #next-btn{
+        background-color: transparent;
+        border: 0px;
+        color: red;
+        font-size: 20px;
+        justify-self: flex-end;
+        margin-right: 5px;
+        cursor: pointer;
+        display: none;
+      }
+
+      #table{
+        width: 100%;
+        display: none;
+        margin-top: 10px;
+      }
+
+      tbody{
+        text-align: center;
+      }
+
+      tr > * + * {
+        padding-left: 4em;
+      }
+
+      th, td {
+        padding-top: 5px;
+        padding-bottom: 5px;
+      }
+
+      select{
+        width: 50px;
+      }
+
+      .fa-pencil{
+        color: lightgray;
+        font-size: 20px;
+      }
+
+      .fa-check{
+        color: lightgray;
+        font-size: 20px;
+      }
+
+      #pen{
+        padding: 10px;
+        border-radius: 2px;
+        cursor: pointer;
+        border: 0px;
+        background-color: #e9e9e9;
+        box-shadow: 0px 0px 4px rgb(0 0 0 / 40%);
+        width: 40px;
+      }
+      
+      #editCanvas{
+        display: none;
+        justify-content: space-between;
+        align-items: center;
+        margin: 10px 10px 10px 5px;
+      }
+
+      #editCanvas > p{
+        visibility: hidden;
+      }
+      .fadeOut{
+        animation-name: fadeout;
+        animation-duration: 2s;
+      }
+      @keyframes fadeout{
+        50%{
+          opacity: 1;
+        }
+        100%{
+          opacity: 0;
+        }
+      }
+      .dropbtn {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        height: 40px;
+        width: 70px;
+        border: none;
+        cursor: pointer;
+        border-radius: 2px;
+        background-color: #f4f4f4;
+      }
+
+      .dropdown {
+        position: relative;
+        display: inline-block;
+      }
+
+      .dropdown-content {
+        display: flex;
+        align-items: center;
+        padding: 5px;
+        position: absolute;
+        background-color: #f9f9f9;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        display: none;
+      }
+
+      .active{
+        display: flex;
+      }
+
+      .dropdown-content > img{
+        cursor: pointer;
+      }
+
+      .dropdown-content > img:not(:last-child){
+        margin-right: 10px;
+      }
+
+    </style>
+    <script src="jquery-3.6.0.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="text/javascript" src="fabric.min.js"></script>
+  </head>
+  <body>
+    <div class="btn-group">
+      <div>
+        <button id="addbtn">Add marker</button>
+      </div>
+      <button id="next-btn">
+        <i class="fa-solid fa-arrow-right-long"></i>
+      </button>
+    </div>
+    <video id="vid" width="500" height="240" controls disablepictureinpicture controlslist="nodownload noplaybackrate nofullscreen" crossorigin="anonymous">
+        <source src="https://res.cloudinary.com/dzcein87k/video/upload/v1660066079/mblwpz4ti1tcfq94r222.mp4" type="video/mp4"></source>
+    </video>
+    <div id="canvas-outerContainer"></div>
+    <div id="editCanvas">
+      <p style="font-size:10px; margin-top:-40px;">You are in edit mode</p>
+      <button id="pen" disabled="true">
+         <i class="fa-solid fa-pencil"></i>
+      </button>
+    </div>
+    <div style="text-align:center;color: gray;height: 18.4px;"> <div  id="markerAddedAlready" class="fadeOut" style="display: none;text-align: center;justify-content: center;">Marker has already been added at this timestamp !</div></div>
+   
+    <div class="outer-wrapper">
+      <div class="wrapper">
+        <div class="container" id="inputs">
+          <div class="slider-track"></div>
+          <div class="progress-track"></div>
+          <input type="range" id="timeline-slider"/>
+        </div>
+      </div>
+      <table id="table">
+        <thead>
+          <tr></tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+
+    
+
+    <script>
+      const video = document.getElementById('vid')
+      const timelineslider = document.getElementById('timeline-slider')
+      const slider_track = document.querySelector(".slider-track")
+      const track = document.querySelector(".progress-track")
+      const addbtn = document.querySelector("#addbtn")
+      const inputContainer = document.getElementById('inputs')
+      const style = document.createElement("style")
+      const nextbtn = document.getElementById("next-btn")
+      const table = document.getElementById("table")
+      video.addEventListener('play', (event) => {
+        document.getElementById('pen').disabled = true;
+        $('#pen i').css('color','lightgray');
+
+        // document.getElementById('pen').disabled = false;
+        // document.querySelector('#pen i').style.color = "rgb(255 76 73)";
+      });
+      
+      let prev
+      var data = []
+
+      const emojis = ['./img/icons/emoticons/1F610.svg', './img/icons/emoticons/1F642.svg', './img/icons/emoticons/2639.svg'];
+
+      let count = 1;
+
+      // close the emoji dropdown if clicked anywhere outside of it
+
+      document.addEventListener("click", function(e){
+         if(!e.target.classList.contains("dropbtn") && !e.target.classList.contains("fa-caret-down") && !e.target.hasAttribute("data-value")){
+            document.querySelectorAll(".dropdown-content").forEach(function(dropdown){
+              dropdown.style.display = "none"
+            })
+         }
+      })
+
+      // formatTime takes a time length in seconds and returns the time in minutes and seconds
+
+      function formatTime(timeInSeconds) {
+        const result = new Date(timeInSeconds * 1000).toISOString().substr(11, 8);
+
+        return {
+          minutes: result.substr(3, 2),
+          seconds: result.substr(6, 2),
+        };
+      };
+
+      // updateTimeElapsed changes the value of the slider on based of how far through the video the current playback is
+
+      function updateTimeElapsed(){
+        const videoDuration = Math.round(video.duration);
+        const time = formatTime(videoDuration);
+        const elapsedtime = formatTime(Math.round(video.currentTime));
+        track.style.width = `${(elapsedtime.seconds / time.seconds) * 100}%`
+        timelineslider.value = elapsedtime.seconds
+      }
+
+      // initialize video sets the max and min value of the slider on the basis of the video duration
+
+      function initializeVideo(){
+        const videoDuration = Math.round(video.duration);
+        const time = formatTime(videoDuration);
+        timelineslider.setAttribute("min", 00)
+        timelineslider.setAttribute("max", time.seconds)
+        timelineslider.value = 00
+      }
+
+      // sets the current frame of the video on the basis of the slider value
+
+      timelineslider.addEventListener('input', function(){
+        video.currentTime = timelineslider.value
+      })
+
+      video.addEventListener('loadedmetadata', initializeVideo);
+
+      video.addEventListener('timeupdate', updateTimeElapsed)
+
+      video.addEventListener("ended", function(){
+        nextbtn.style.display = 'block'
+      }, {once: true})
+
+      // open dropdown
+
+      function showDropdown(e){
+
+        document.querySelectorAll('.dropdown').forEach(function(dropdown){
+          dropdown.children[1].style.display = "none";
+        })
+
+        e.parentElement.children[1].style.display = "flex";
+      }
+      
+      // add marker to the timeline
+
+      addbtn.addEventListener("click", function(){
+
+        const index = data.findIndex(slider => 
+          slider.timestamp == formatTime(Math.round(video.currentTime)).seconds
+        )
+
+        if(index >= 0){
+          $(`#markerAddedAlready`).css('display','flex');
+          setTimeout(()=>{
+            $(`#markerAddedAlready`).css('display','none');
+          },1500)
+        } else {
+          const input = document.createElement("input")
+          input.setAttribute("type", "range")
+          input.setAttribute("value", formatTime(Math.round(video.currentTime)).seconds)
+          input.setAttribute("min", 00)
+          input.setAttribute("max", formatTime(Math.round(video.duration)).seconds)
+          input.setAttribute("id", `slider-${count}`)
+          input.setAttribute("onclick", "setPosition(this.value, this.getAttribute('id'))")
+          input.setAttribute("onchange", "changeTime(this, this.getAttribute('id'))")
+
+          data.push({
+            id: `slider-${count}`,
+            timestamp: `${formatTime(Math.round(video.currentTime)).seconds}`,
+            emoji: '',
+            description: "",
+          });
+
+          let string = '';
+
+          for(let i = 0; i < emojis.length ;i++){
+            string += `<img src="${emojis[i]}" data-value=${i+1} width="30" height="30" onclick="updateEmoji(this)" />`;
+          }
+          
+          table.getElementsByTagName('tbody')[0].innerHTML += `<tr>
+           <td style="color: #3688ce; cursor: pointer;" onclick="setPosition('${formatTime(Math.round(video.currentTime)).seconds}', 'slider-${count}')">${formatTime(Math.round((video.currentTime))).minutes}:${formatTime(Math.round((video.currentTime))).seconds}</td>
+           <td>
+             <div class="dropdown" id="dropdown-${count}">
+               <button class="dropbtn" onclick="showDropdown(this)" isClick = "!isClicked">
+                 <img src="./img/icons/emoticons/none.png" data-value = "0" width = "20" height = "20" /> 
+                 <i class="fa-solid fa-caret-down"></i>
+               </button>
+
+               <div class="dropdown-content" id="content-${count}">
+                 <img src="./img/icons/emoticons/none.png" data-value = "0" width = "20" height = "20" onclick="updateEmoji(this)" />
+                 ${string}
+               </div>
+               </div>
+           </td>
+           <td><input type="text"/></td>
+           <td onclick="deleteMarker('slider-${count}')" style="cursor:pointer; color: red;"><i class="fa-solid fa-times"></i></td>
+         <tr>`
+
+
+          $('#canvas-outerContainer').append(`<canvas id="canvas-${count}" width="500" height="240" style="display:none;"></canvas>`);
+          $("#canvas-outerContainer").append(`<canvas style="display: none;" width="500" height="240" id="temporary-${count}"></canvas>`);
+      
+
+          inputContainer.append(input)
+          count++;
+        }
+      })
+
+      // move to the next content
+
+      nextbtn.addEventListener('click', function(){
+        document.getElementById('editCanvas').style.display='flex';
+
+        let tableHeads = ['Timestamp', 'Marker', 'Description']
+   
+        table.style.display = "block"
+        nextbtn.style.display = "none"
+        style.textContent += `input[type="range"]::-webkit-slider-thumb{ pointer-events: auto; cursor: pointer; }`
+        document.head.append(style)
+        video.currentTime = 0
+
+        tableHeads.forEach(head => {
+          table.querySelector('thead tr').innerHTML += `<th>${head}</th>`
+        })
+      })
+
+      // Update the emojis in the table
+      
+      function updateEmoji(e){
+        const value = Number(e.getAttribute("data-value"))
+        const id = `slider-${e.parentElement.getAttribute("id").split("-")[1]}`
+        const dropdown = document.getElementById(`dropdown-${e.parentElement.getAttribute("id").split("-")[1]}`)
+        
+
+        if(value > 0){
+          var index = data.findIndex(slider => slider.id === id)
+        
+          data[index].emoji = emojis[Number(value - 1)];
+        
+          style.textContent += `#${id}::-webkit-slider-thumb {
+              background:  url(${emojis[value - 1]}) center center no-repeat;
+              width: 1.8em;
+              height: 1.8em;
+              margin-top: -9.5px;
+              clip-path: none;
+          }`
+
+          dropdown.children[0].querySelector("img").src = emojis[value - 1];
+          dropdown.children[0].querySelector("img").width = 30, dropdown.children[0].querySelector("img").height = 30;
+
+
+        } else {
+
+          var index = data.findIndex(slider => slider.id === id)
+
+          data[index].emoji = "";
+
+          style.textContent += `#${id}::-webkit-slider-thumb{
+             background-image: none;
+             width: 1.2em;
+             height: 1.2em;
+             margin-top: -5.5px;
+             background-color: #3688ce;
+             clip-path: polygon(25% 0%, 75% 0%, 75% 52%, 51% 100%, 51% 100%, 25% 50%);
+          }`
+
+          dropdown.children[0].querySelector("img").src = './img/icons/emoticons/none.png';
+          dropdown.children[0].querySelector("img").width = 20, dropdown.children[0].querySelector("img").height = 20;
+        }
+        
+
+        document.head.append(style)
+
+        e.parentElement.style.display = "none"
+      }
+          
+
+      // reload the table on updates
+
+      function reloadTable(){
+        table.getElementsByTagName('tbody')[0].innerHTML='';
+        data.sort((a, b) => (a.timestamp > b.timestamp ? 1 : -1));
+        console.log(data);
+        data.forEach((slider, index) => {
+          let indexEmoji = emojis.findIndex(emoji => emoji === slider.emoji);
+          let string = '';
+
+          for(let i = 0; i < emojis.length ;i++){
+            string += `<img src="${emojis[i]}" data-value=${i + 1} width="30" height="30" onclick="updateEmoji(this)"/>`;
+          }
+
+           table.getElementsByTagName('tbody')[0].innerHTML += `<tr>
+            <td style="color: #3688ce; cursor: pointer;" onclick="setPosition('${slider.timestamp}', '${slider.id}')">${formatTime(Math.round(Number((slider.timestamp)))).minutes}:${formatTime(Math.round(Number((slider.timestamp)))).seconds}</td>
+            <td>
+              <div class="dropdown" id="dropdown-${slider.id.substr(7, slider.id.length)}">
+                <button class="dropbtn" onclick="showDropdown(this)">
+                  <img src="${emojis[indexEmoji] ? emojis[indexEmoji] : './img/icons/emoticons/none.png'}" data-value="${indexEmoji + 1 || 0}" width = "${indexEmoji + 1 ? 30 : 20}" height = "${indexEmoji + 1 ? 30 : 20}" />
+                  <i class="fa-solid fa-caret-down"></i>
+                </button>
+
+                <div class="dropdown-content" id="content-${slider.id.substr(7, slider.id.length)}">
+                  <img src="./img/icons/emoticons/none.png" data-value = "0" width = "20" height = "20" onclick="updateEmoji(this)" />
+                  ${string}
+                </div>
+              </div>
+              </td>
+              <td><input type="text"/></td>
+              <td onclick="deleteMarker('${slider.id}')" style="cursor:pointer; color: red;"><i class="fa-solid fa-times"></i></td>
+            <tr>`
+  
+          })
+        }
+
+
+      // delete marker
+
+      function deleteMarker(id){
+        document.getElementById('pen').disabled = true;
+        $('#pen i').css('color','lightgray');
+        document.querySelector("#inputs").removeChild(document.getElementById(id))
+        data = data.filter(slider => slider.id !== id);
+        reloadTable();
+      }
+
+      // change the timestamp of the marker
+
+      function changeTime(e, idActual){
+        document.getElementById('pen').disabled = false;
+        document.querySelector('#pen i').style.color = "rgb(255 76 73)";
+        const id = idActual.split('-')[1];
+        $(`#canvasParent-${id}`).remove();
+        $('#canvas-outerContainer').append(`<canvas id="canvas-${id}" width="500" height="240" style="display:none;"></canvas>`);
+
+        const index = data.findIndex(slider => slider.id === e.getAttribute("id"))
+        data[index] = {...data[index], timestamp: `${formatTime(Math.round(e.value)).seconds}`}
+        reloadTable();
+
+        vid.currentTime = e.value;
+        var canvas2 = document.getElementById(`temporary-${id}`);
+        if(canvas2){
+          var context2=canvas2.getContext('2d');
+          setTimeout(() => {
+            context2.fillRect(0, 0, 500, 240);
+            context2.drawImage(vid, 0, 0, 500, 240)
+
+            var image = new Image()
+            image.crossOrigin = "anonymous"
+
+            image.addEventListener('load', () => {
+                generateCanvas(id, image);
+                $(`#canvas-${id}`).parent().css('display', 'none');
+            })
+
+            image.src = canvas2.toDataURL();
+          }, 10)
+        }
+      }
+
+
+      // Set the position of the video based on the marker
+
+      function setPosition(e, id){
+        document.getElementById('pen').disabled = false;
+        document.querySelector('#pen i').style.color = "rgb(255 76 73)";
+
+
+        document.getElementById('pen').setAttribute("onclick", `setCurrentCanvas(${e},'${id}')`)
+        const sliders = [...document.querySelectorAll("input[type='range']")]
+        sliders.splice(0, 1)
+        video.currentTime = formatTime(Math.round(Number(e))).seconds
+        sliders.forEach(slider => {
+          slider.classList.remove('active')
+          slider.classList.add("unactive")
+        })
+
+        document.getElementById(id).classList.add('active')
+        document.getElementById(id).classList.remove("unactive")
+      }
+     
+      // Set the current canvas to the marker's position
+
+      function setCurrentCanvas(e, idActual) {
+        let id = idActual.split('-')[1];
+
+        video.style.display='none';
+        document.getElementById('pen').innerHTML = `<i class="fa-solid fa-check"></i>`;
+        document.querySelector('#pen i').style.color = "#32a852";
+        document.getElementById('pen').setAttribute("onclick", `removeCanvas(${id})`)
+        document.querySelector('#editCanvas p').style.visibility = 'visible'
+        
+        style.textContent += ` .outer-wrapper > *, input[type='range']::-webkit-slider-thumb, .btn-group > * { pointer-events: none; cursor: default; }`
+
+        document.head.append(style)
+       
+        let value = $(`#slider-${id}`).val();
+        vid.currentTime = e;
+
+        var canvas2 = document.getElementById(`temporary-${id}`);
+        if(canvas2){
+
+          var context2=canvas2.getContext('2d');
+          setTimeout(() => {
+            context2.fillRect(0, 0, 500, 240);
+            context2.drawImage(vid, 0, 0, 500, 240)
+
+            var image = new Image()
+            image.crossOrigin = "anonymous"
+            image.addEventListener('load', () => {
+                generateCanvas(id, image);
+                document.getElementById(`canvas-${id}`).style.display="block";
+            })
+            image.src = canvas2.toDataURL();
+          }, 10);
+          
+
+        }
+      }
+
+      // draw on canvas using the highlighter 
+
+      function drawOnCanvas(fabricCanvas){
+        fabricCanvas.isDrawingMode = true;
+        fabricCanvas.freeDrawingBrush.width = 5;
+        fabricCanvas.freeDrawingBrush.color = 'rgb(255 76 73)';
+        fabricCanvas.freeDrawingBrush.mode = 'multiply';
+      }
+
+      // remove the canvas and display the video
+
+      function removeCanvas(id){
+        $(`#canvas-${id}`).parent().css('display', 'none');
+        video.style.display='block';
+        //document.getElementById('pen').disabled = true;
+
+        const time = data.find(slider => slider.id === `slider-${id}`).timestamp;
+
+        document.getElementById('pen').innerHTML = `<i class="fa-solid fa-pencil"></i>`;
+        document.querySelector('#pen i').style.color = "rgb(255 76 73)";
+        document.getElementById('pen').setAttribute("onclick", `setCurrentCanvas(${time},'slider-${id}')`)
+
+
+        document.querySelector('#editCanvas p').style.visibility = 'hidden'
+        style.textContent += ` .outer-wrapper > *, .btn-group > *, input[type='range']::-webkit-slider-thumb { pointer-events: auto; } input[type='range']::-webkit-slider-thumb{cursor: pointer;}`
+
+        document.head.append(style)
+      }
+
+      // generate the canvas and set the background image
+
+      function generateCanvas(id, image) {
+        if(!document.getElementById(`canvasParent-${id}`)){
+          fabricCanvas = new fabric.Canvas(`canvas-${id}`)
+          document.getElementById(`canvas-${id}`).fabric = fabricCanvas;
+        } else {
+          fabricCanvas = document.getElementById(`canvas-${id}`).fabric
+        }
+
+        var backgroundImage = new fabric.Image();
+        backgroundImage.setSrc(
+          image.src,
+          function () {
+            backgroundImage.set({
+              top: 0,
+              left: 0,
+            });
+
+            fabricCanvas.setBackgroundImage(backgroundImage);
+            fabricCanvas.renderAll();
+          },
+          { crossorigin: "Anonymous" }
+        );
+
+        if(document.getElementById(`canvasParent-${id}`) == null){
+          $(`#canvas-${id}`).parent().attr('id', `canvasParent-${id}`);
+          $(`#canvas-${id}`).parent().children().css('display', 'block');
+        }
+        else
+        {
+          $(`#canvas-${id}`).parent().css('display', 'block');
+        }
+       
+        drawOnCanvas(fabricCanvas);
+      }
+      
+    </script>
+  </body>
+</html>
+
